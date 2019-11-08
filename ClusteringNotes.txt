@@ -1,0 +1,43 @@
+Variables that we are clustering:
+"BookingChannel",
+#Replace odd one off booking channels with 'Other'
+data$BookingChannel<-as.character(data$BookingChannel)
+data$BookingChannel[data$BookingChannel!="Outside Booking" & data$BookingChannel!="SCA Website Booking" & data$BookingChannel!="Tour Operator Portal" & data$BookingChannel!="Reservations Booking" & data$BookingChannel!="SY Vacation"] <- "Other"
+
+"age_group",
+#Create Age buckets
+data <- mutate(data, age_group = ifelse(Age>=0 & Age<18,"0-17",
+                            ifelse(Age>=18 & Age < 25,"18-24",
+                                   ifelse(Age>=25&Age<35,"25-34",
+                                          ifelse(Age>=35 & Age<55,"35-54",
+                                                 ifelse(Age>=55,"55+","N/A"))))))
+ "true_origin"
+"true_destination"
+"UflyMemberStatus"
+"seasonality"
+
+Variables I need to cluster:
+Category
+Types of categories: 
+ART_AND_DESIGN, AUTO_AND_VEHICLES, BEAUTY, BOOKS_AND_REFERENCE, BUSINESS, COMICS, COMMUNICATION, DATING, EDUCATION, ENTERTAINMENT, EVENTS, FINANCE, FOOD_AND_DRINK, HEALTH_AND_FITNESS, HOUSE_AND_HOME, LIBRARIES_AND_DEMO, LIFESTYLE, GAME, FAMILY, MEDICAL, SOCIAL, SHOPPING, PHOTOGRAPHY, SPORTS, TRAVEL_AND_LOCAL, TOOLS, PERSONALIZATION, PRODUCTIVITY, PARENTING, WEATHER, VIDEO_PLAYERS, NEWS_AND_MAGAZINES, MAPS_AND_NAVIGATION
+
+#Replace odd one off categories with 'Other'
+data$Category<-as.character(data$Category)
+data$Category[data$Category!="ART_AND_DESIGN" & data$Category !="AUTO_AND_VEHICLES" & data$Category!="BEAUTY" & data$Category !="BOOKS_AND_REFERENCE" & data$Category!="BUSINESS" & data$Category != "COMICS" & data$Category != "COMMUNICATION" & data$Category != "DATING" & data$Category != "EDUCATION" & data$Category != "ENTERTAINMENT" & data$Category != "EVENTS" & data$Category != "FINANCE" & data$Category != "FOOD_AND_DRINK" & data$Category != "HEALTH_AND_FITNESS" & data$Category != "HOUSE_AND_HOME" & data$Category != "LIBRARIES_AND_DEMO" & data$Category != "LIFESTYLE" & data$Category != "GAME" & data$Category != "FAMILY" & data$Category != "MEDICAL" & data$Category != "SOCIAL" & data$Category != "SHOPPING" & data$Category != "PHOTOGRAPHY" & data$Category != "SPORTS" & data$Category != "TRAVEL_AND_LOCAL" & data$Category != "TOOLS" & data$Category != "PERSONALIZATION" & data$Category != "PRODUCTIVITY" & data$Category != "PARENTING" & data$Category != "WEATHER" & data$Category != "VIDEO_PLAYERS" & data$Category != "NEWS_AND_MAGAZINES" & data$Category != "MAPS_AND_NAVIGATION"] <- "Other"
+ 
+
+Rating:
+
+***Right parentheses
+data <- mutate(data, Rating_group = ifelse(as.numeric(as.character(Rating))>=0 & as.numeric(as.character(Rating))<1,"0-1",         ifelse(as.numeric(as.character(Rating))>=1 & as.numeric(as.character(Rating)) < 2,"1-2",             ifelse(as.numeric(as.character(Rating))>=2 & as.numeric(as.character(Rating))<3,"2-3",                 ifelse(as.numeric(as.character(Rating))>=3 & as.numeric(as.character(Rating))<4,"3-4",                     ifelse(as.numeric(as.character(Rating))>=4,"4-5","N/A"))))))
+
+
+
+Reviews
+NO!Size
+Installs
+Type
+Genres
+
+
+MAKE content.rating and type 

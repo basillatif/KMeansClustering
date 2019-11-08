@@ -1,0 +1,89 @@
+DATA CLEANING TASKS
+Replace NaN in Rating with mean 
+Replace 'varies with device' in Size with undefined 
+Replace 'Nan' and 'varies with device' in current version with undefined 
+Replace 'varies with device' in Android version with undefined 
+
+data$Size[data$Size == 'Varies with device'] <- undefined
+
+data <- data.frame(lapply(data, function(x) {gsub("Varies with device", "undefined", x)}))
+
+count(mydf, "MONTH-YEAR")
+
+Analyze:
+Category(Art&Design or Weather)
+Content.rating(teen or everyone)
+Genres(Art&Design or Beauty)
+
+Independent: category
+Dependent variables: rating, reviews, size, installs
+
+DATA MANIPULATION:
+#Make distinct buckets for all categories
+data$Category<-as.character(data$Category)
+
+data$Category[data$Category!="ART_AND_DESIGN" & data$Category !="AUTO_AND_VEHICLES" & data$Category!="BEAUTY" & data$Category !="BOOKS_AND_REFERENCE" & data$Category!="BUSINESS" & data$Category != "COMICS" & data$Category != "COMMUNICATION" & data$Category != "DATING" & data$Category != "EDUCATION" & data$Category != "ENTERTAINMENT" & data$Category != "EVENTS" & data$Category != "FINANCE" & data$Category != "FOOD_AND_DRINK" & data$Category != "HEALTH_AND_FITNESS" & data$Category != "HOUSE_AND_HOME" & data$Category != "LIBRARIES_AND_DEMO" & data$Category != "LIFESTYLE" & data$Category != "GAME" & data$Category != "FAMILY" & data$Category != "MEDICAL" & data$Category != "SOCIAL" & data$Category != "SHOPPING" & data$Category != "PHOTOGRAPHY" & data$Category != "SPORTS" & data$Category != "TRAVEL_AND_LOCAL" & data$Category != "TOOLS" & data$Category != "PERSONALIZATION" & data$Category != "PRODUCTIVITY" & data$Category != "PARENTING" & data$Category != "WEATHER" & data$Category != "VIDEO_PLAYERS" & data$Category != "NEWS_AND_MAGAZINES" & data$Category != "MAPS_AND_NAVIGATION"] <- "Other"
+
+data$Category<-as.factor(data$Category)
+
+#Make buckets for Ratings
+data <- mutate(data, Rating_group = ifelse(as.numeric(as.character(Rating))>=0 & as.numeric(as.character(Rating))<1,"0-1",
+        ifelse(as.numeric(as.character(Rating))>=1 & as.numeric(as.character(Rating)) < 2,"1-2",
+            ifelse(as.numeric(as.character(Rating))>=2 & as.numeric(as.character(Rating))<3,"2-3",
+                ifelse(as.numeric(as.character(Rating))>=3 & as.numeric(as.character(Rating))<4,"3-4",
+                    ifelse(as.numeric(as.character(Rating))>=4,"4-5","N/A"))))))
+
+#Make buckets for Reviews
+data <- mutate(data, Reviews_group = 
+  ifelse(as.numeric(as.character(Reviews))>=0 & as.numeric(as.character(Reviews))<2000,"0-1999",
+        ifelse(as.numeric(as.character(Reviews))>=2000 & as.numeric(as.character(Reviews)) < 4000,"2000         -3999",
+          ifelse(as.numeric(as.character(Reviews))>=4000 & as.numeric(as.character(Reviews))<6000,"4000           -5999",
+            ifelse(as.numeric(as.character(Reviews))>=6000 & as.numeric(as.character(Reviews))<7999                 ,"6000-7999",
+                  ifelse(as.numeric(as.character(Reviews))>=8000,"8000+","N/A"))))))
+
+#Make buckets for installs !!! Not working 
+data <- mutate(data, Install_group = ifelse(as.numeric(as.character(Installs))>=0 & as.numeric(as.character(Installs))<1000,"0-999",
+        ifelse(as.numeric(as.character(Installs))>=1000 & as.numeric(as.character(Installs)) < 100000,"1000-99999",
+            ifelse(as.numeric(as.character(Installs))>=100000 & as.numeric(as.character(Installs))<1000000,"100000-999999",
+                ifelse(as.numeric(as.character(Installs))>=1000000 & as.numeric(as.character(Installs))<500000000,"1000000-499999999",
+                    ifelse(as.numeric(as.character(Installs))>=500,000,000,"500000000+","N/A"))))))
+
+$Make Buckets for Type 
+
+APPLYING CLUSTERING:
+1. #Let's aggregate up to the customer-trip level.
+2. #Let's remove columns that won't be too useful for clustering, like IDs, names.
+3. #Let's normalize the data before doing our cluster analysis.
+4. #Dummy code variables
+5. #Remove the original (non-dummy-coded) variables
+6. #Remove columns that were created for factor levels that were not represented in the sample.
+7. #Now run k-Means and look at the within SSE curve - 3 or 5 seems like the best
+
+***Need to remove app name
+#Step 1 Aggregate up to the customer-trip level
+data <- mutate(data, uid=paste(App,Size,Installs,sep=""))
+app_data <- data %>% group_by(uid) %>% summarise(App=first(App), Category=first(Category), Rating=first(Rating), Reviews=first(Reviews), Size=first(Size), Installs=first(Installs), Type=first(Type), Price=first(Price), Content.Rating=first(Content.Rating), Genres=first(Genres), reviews_per_installs=first(reviews_per_installs))
+
+#Step 2 Remove columns
+clustering_app_data<-subset(app_data,select=-c(uid,Type,Content.Rating))
+head(clustering_app_data)
+
+#Step 3 Normalize the data
+normalize <- function(x){
+  return ((x - min(x))/(max(x) - min(x)))
+}
+clustering_app_data = mutate(clustering_app_data, Rating = normalize(as.numeric(Rating)), Reviews = normalize(as.numeric(Reviews)), Size = normalize(as.numeric(Size)), Installs = normalize(as.numeric(Installs)), Price = normalize(as.numeric(Price)), reviews_per_installs = normalize(reviews_per_installs))
+
+#Step 4 Dummy Code Variables
+library(ade4)
+clustering_app_data <- as.data.frame(clustering_app_data)
+clustering_app_data <-  clustering_app_data %>% 
+cbind(acm.disjonctif(clustering_app_data[,c("Category","rating_group")]))%>%ungroup()
+head(clustering_app_data)
+
+
+
+
+#Aggregate up to the app level.
+data <- mutate(data, uid=paste(App,Size,Installs,sep=""))
+app_data <- data %>% group_by(uid) %>% summarise(App=first(App), Category=first(Category), Rating=first(Rating), Reviews=first(Reviews), Size=first(Size), Installs=first(Installs), Type=first(Type), Price=first(Price), Content.Rating=first(Content.Rating), Genres=first(Genres), reviews_per_installs=first(reviews_per_installs))
